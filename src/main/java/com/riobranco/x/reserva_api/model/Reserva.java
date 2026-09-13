@@ -1,6 +1,10 @@
+/*
+ * MODEL - Entidade\Objeto do domínio
+ * Representa um objeto do mundo real, sua estrutura de dados ou uma tabela do banco de dados
+*/
 package com.riobranco.x.reserva_api.model;
 
-
+// Os imports trazem funcionalidades que serão utilizadas pela classe.
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -10,8 +14,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+// São responsáveis pelo mapeamento objeto-relacional. Permitem que a classe seja relacionada a uma tabela.
 
-@Entity
+@Entity // @Entity informa ao JPA que a classe Reserva é uma entidade persistente.
 @Table(name = "reservas")
 public class Reserva {
 
@@ -46,12 +51,13 @@ public class Reserva {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    //Construtor vazio, requisito para JPA
+    // Construtor vazio, requisito para JPA
+    // O JPA precisa conseguir criar objetos da classe Reserva sem necessariamente receber parâmetros no construtor.
     public Reserva() {}
 
     // Getters e Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() { return id; } // O getter serve para obter o valor
+    public void setId(Long id) { this.id = id; } // O setter serve para alterar o valor:
 
     public Long getUsuarioId() { return usuarioId; }
     public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
