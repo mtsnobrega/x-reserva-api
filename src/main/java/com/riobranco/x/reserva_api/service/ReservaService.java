@@ -174,14 +174,14 @@ public class ReservaService {
 
     // METODOS ESPESCIFICOS DE BUSCA
     public List<Reserva> buscarPorStatus(String status) {
-        return repository.BuscarPorStatus(status);
+        return repository.findByStatus(status);
     }
 
     public List<Reserva> buscarPorUsuario(Long usuarioId) {
-        return repository.BuscarPorUsuario(usuarioId);
+        return repository.findByUsuarioId(usuarioId);
     }
 
     public List<Reserva> buscarPorVaga(Long vagaId) {
-        return repository.BuscarPorVaga(vagaId);
+        return repository.findByVagaId(vagaId);
     }
 }

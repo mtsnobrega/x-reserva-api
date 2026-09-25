@@ -21,9 +21,9 @@ import com.riobranco.x.reserva_api.model.Reserva;
 public interface ReservaRepository extends JpaRepository<Reserva, Long> {
    
     // Metodos criados para permitir operações especificas 
-    List<Reserva> BuscarPorStatus(String status);
-    List<Reserva> BuscarPorUsuario(Long usuarioId);
-    List<Reserva> BuscarPorVaga(Long vagaId);
+    List<Reserva> findByStatus(String status);
+    List<Reserva> findByUsuarioId(Long usuarioId);
+    List<Reserva> findByVagaId(Long vagaId);
 
     @Query("SELECT COUNT(r) > 0 FROM Reserva r " +
            "WHERE r.vagaId = :vagaId " +
