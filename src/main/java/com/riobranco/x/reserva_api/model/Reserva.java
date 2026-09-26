@@ -27,8 +27,14 @@ public class Reserva {
     @Column(name = "usuario_id", nullable = false)
     private Long usuarioId;
 
+    @Column(name = "placa_veiculo", nullable = false)
+    private String placaVeiculo;
+
     @Column(name = "vaga_id", nullable = false)
     private Long vagaId;
+
+    @Column(name = "nome_vaga", nullable = false)
+    private String nomeVaga;
 
     @Column(name = "data_inicio", nullable = false)
     private LocalDateTime dataInicio;
@@ -44,6 +50,9 @@ public class Reserva {
 
     @Column(name = "checkout_at")
     private LocalDateTime checkoutAt;
+
+    @Column(name = "preco_vaga")
+    private BigDecimal precoVaga;
 
     @Column(name = "preco_reserva")
     private BigDecimal precoReserva;
@@ -62,8 +71,14 @@ public class Reserva {
     public Long getUsuarioId() { return usuarioId; }
     public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
 
+    public String getPlacaVeiculo() { return placaVeiculo; }
+    public void setPlacaVeiculo(String placaVeiculo) { this.placaVeiculo = placaVeiculo; }
+
     public Long getVagaId() { return vagaId; }
     public void setVagaId(Long vagaId) { this.vagaId = vagaId; }
+
+    public String getNomeVaga() { return nomeVaga; }
+    public void setNomeVaga(String nomeVaga) { this.nomeVaga = nomeVaga; }
 
     public LocalDateTime getDataInicio() { return dataInicio; }
     public void setDataInicio(LocalDateTime dataInicio) { this.dataInicio = dataInicio; }
@@ -79,6 +94,9 @@ public class Reserva {
 
     public LocalDateTime getCheckoutAt() { return checkoutAt; }
     public void setCheckoutAt(LocalDateTime checkoutAt) { this.checkoutAt = checkoutAt;}
+
+    public BigDecimal getPrecoVaga() { return precoVaga; }
+    public void setPrecoVaga(BigDecimal precoVaga) { this.precoVaga = precoVaga; }
 
     public BigDecimal getPrecoReserva() { return precoReserva; }
     public void setPrecoReserva(BigDecimal precoReserva) { this.precoReserva = precoReserva; }

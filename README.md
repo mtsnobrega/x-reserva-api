@@ -192,12 +192,12 @@ Identifica a vaga que será utilizada. A administração das vagas pertence à f
 
 Representam o período reservado. A API verifica se: `dataInicio < dataFim`, uma reserva com período inválido é rejeitada.
 
-### `precoReserva`
-Indica o valor cobrado pela vaga, pelo tempo de uso, sendo calculada: 
-```text
-precoReserva = preco_vaga * (data_fim - data_fim)
-```
+### `precoVaga`
+Indica o valor cobrado individualmente por vaga
 
+### `precoReserva`
+Indica o valor cobrado pela pela reserva, ele é calculado com base no valor da vaga por hora.
+Cada hora iniciada é cobrada integralmente. Por isso, se a reserva durar 1 hora e 30 minutos, são cobradas 2 horas.
 
 ### `status`
 
@@ -301,6 +301,7 @@ O projeto busca aplicar alguns princípios importantes de desenvolvimento de sof
 A API pode ser testada utilizando o Postman. Com a aplicação executando localmente: `http://localhost:8080`
 
 ### POST - Criar uma reserva
+O endpoint permite que um usuário crie uma reserva
 
 ```http
 http://localhost:8080/reservas/nova-reserva
@@ -310,28 +311,133 @@ Body:
 
 ```json
 {
-  "usuarioId": 1,
-  "vagaId": 10,
-  "dataInicio": "2026-09-16T18:00:00",
-  "dataFim": "2026-09-16T21:00:00",
-  "precoReserva": 30.00
+    "usuarioId": 1,
+    "placaVeiculo":"ABC-1234",
+    "vagaId": 8,
+    "nomeVaga":"A10",
+    "dataInicio": "2026-10-27T15:00:00",
+    "dataFim": "2026-10-27T16:00:00",
+    "precoVaga": 10.00
+}
+```
+Exemplo de reposta retornado pela API:
+
+```json
+{
+    "checkinAt": null,
+    "checkoutAt": null,
+    "createdAt": "2026-09-26T16:49:12.5719669",
+    "dataFim": "2026-09-27T15:30:00",
+    "dataInicio": "2026-09-27T15:00:00",
+    "id": 1,
+    "nomeVaga": "A10",
+    "placaVeiculo": "ABC-1234",
+    "precoReserva": 10.00,
+    "precoVaga": 10.00,
+    "status": "PENDENTE",
+    "usuarioId": 1,
+    "vagaId": 8
+}
+```
+### GET - Buscar reservas por status
+É um endpoint especifico do administrador, lista todas as reservas com base no status.
+
+Permite listar quais reservas estão pendentes para fazer o check-in
+```http
+http://localhost:8080/reservas/status/PENDENTE
+```
+
+Permite listar quais reservas estão pendentes para fazer o check-out
+```http
+http://localhost:8080/reservas/status/EM_USO
+```
+
+Permite listar quais reservas forma finalizadas
+```http
+http://localhost:8080/reservas/status/FINALIZADA
+```
+
+### PATCH - Check-in
+O endpoint é utilizado pelo administrador para realizar o check-in
+de uma reserva que esteja com status `PENDENTE`.
+
+Para identificar a reserva, o administrador primeiro consulta as
+reservas pendentes através do endpoint de **GET - Buscar reservas por status**.
+
+Após identificar a reserva desejada, o `id` da reserva é utilizado
+na URL do endpoint de check-in.
+```http
+PATCH http://localhost:8080/reservas/1/checkin
+```
+
+Body:
+
+```json
+{
+    Não precisa enviar JSON. O Body fica vazio e horário do checkinAt será gerado pelo servidor
 }
 ```
 
-### GET - Listar todas as reservas
+Exemplo de reposta retornado pela API:
 
+```json
+{
+    "checkinAt": "2026-09-26T17:30:59.1084626",
+    "checkoutAt": null,
+    "createdAt": "2026-09-26T16:49:12.571967",
+    "dataFim": "2026-09-27T15:30:00",
+    "dataInicio": "2026-09-27T15:00:00",
+    "id": 1,
+    "nomeVaga": "A10",
+    "placaVeiculo": "ABC-1234",
+    "precoReserva": 10.00,
+    "precoVaga": 10.00,
+    "status": "EM_USO",
+    "usuarioId": 1,
+    "vagaId": 8
+}
+```
+
+### PATCH - Check-out 
+O endpoint é utilizado pelo administrador para realizar o check-in
+de uma reserva que esteja com status `EM_USO`.
+Segue a mesma regra do id aplicada sobre o check-in
 ```http
-http://localhost:8080/reservas/listar-reservas
+http://localhost:8080/reservas/1/checkout
+```
+
+Body:
+
+```json
+{
+    Não precisa enviar JSON. O Body fica vazio e horário do checkoutAt será gerado pelo servidor
+}
 ```
 
 ### GET - Buscar uma reserva pelo ID
-
+É um endpoint especifico do administrador, permite listar uma reserva por id, para ver detalhes isolados.
 ```http
 http://localhost:8080/reservas/listar-reservas/1
 ```
 
-### PUT - Atualizar uma reserva
+### GET - Listar todas as reservas
+É um endpoint especifico do administrador, lista todas as reservas ja cadsatradas no sistema, como forma de histórico. 
+```http
+http://localhost:8080/reservas/listar-reservas
+```
 
+### DELETE
+Nesse caso: 
+- PENDENTE   ✖️ não pode deletar
+- EM_USO     ✖️ não pode deletar
+- FINALIZADA ☑️ pode deletar
+- CANCELADA  ☑️ pode deletar
+
+```http
+http://localhost:8080/reservas/deletar-reservas/1
+```
+
+### PUT - Atualizar uma reserva
 ```http
 http://localhost:8080/reservas/atualizar-reservas/1
 ```
@@ -346,88 +452,8 @@ Body:
 }
 ```
 
-### POST Testar conflito de horário
-Consiste em testar criar uma reserva quando uma vaga já esta sendo ocupada. 
-```http
-http://localhost:8080/reservas/nova-reserva
-```
-
-Body Primeira Reserva:
-
-```json
-{
-  "usuarioId": 1,
-  "vagaId": 10,
-  "dataInicio": "2026-09-16T18:00:00",
-  "dataFim": "2026-09-16T21:00:00",
-  "precoReserva": 30.00
-}
-```
-Body Segunda Reserva:
-```json
-{
-    "usuarioId": 2,
-    "vagaId": 10,
-    "dataInicio": "2026-09-16T19:00:00",
-    "dataFim": "2026-09-16T22:00:00",
-    "precoReserva": 30.00
-}
-```
-
-### PATCH - Check-in
-Testar após cadastrar uma reserva
-```http
-PATCH http://localhost:8080/reservas/1/checkin
-```
-
-Body:
-
-```json
-{
-    Não precisa enviar JSON. O Body fica vazio e horário do checkinAt será gerado pelo servidor
-}
-```
-
-### PATCH - Check-out 
-Testar após cadastrar uma reserva
-```http
-http://localhost:8080/reservas/1/checkout
-```
-
-Body:
-
-```json
-{
-    Não precisa enviar JSON. O Body fica vazio e horário do checkoutAt será gerado pelo servidor
-}
-```
-
 ### GET - Buscar reservas por usuário
 
 ```http
 http://localhost:8080/reservas/usuario/1
-```
-
-### GET - Buscar reservas por status
-```http
-http://localhost:8080/reservas/status/PENDENTE
-```
-
-```http
-http://localhost:8080/reservas/status/EM_USO
-```
-
-```http
-http://localhost:8080/reservas/status/FINALIZADA
-```
-
-### DELETE
-Nesse caso: 
-- PENDENTE   ✖️ não pode deletar
-- EM_USO     ✖️ não pode deletar
-- FINALIZADA ☑️ pode deletar
-- CANCELADA  ☑️ pode deletar
-
-```http
-http://localhost:8080/reservas/deletar-reservas/1
 ```
