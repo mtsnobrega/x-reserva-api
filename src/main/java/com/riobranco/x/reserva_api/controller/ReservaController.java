@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.riobranco.x.reserva_api.model.Reserva;
 import com.riobranco.x.reserva_api.service.ReservaService;
 
+@CrossOrigin(origins = "*")
 @RestController // define a classe como tipo Rest 
 @RequestMapping("/reservas") // caminho base para os endpoints do controller
 // @GetMapping ---> GET /reservar
