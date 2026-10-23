@@ -60,6 +60,12 @@ public class Reserva {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = true)
+    private String motivoCancelamento;
+
+    @Column(name = "cancelada_at", nullable = true)
+    private LocalDateTime canceladaAt;
+
     // Construtor vazio, requisito para JPA
     // O JPA precisa conseguir criar objetos da classe Reserva sem necessariamente receber parâmetros no construtor.
     public Reserva() {}
@@ -103,4 +109,12 @@ public class Reserva {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+
+
+    public String getMotivoCancelamento() { return motivoCancelamento; }
+    public void setMotivoCancelamento(String motivoCancelamento) { this.motivoCancelamento = motivoCancelamento; }
+
+    public LocalDateTime getCanceladaAt() { return canceladaAt; }
+    public void setCanceladaAt(LocalDateTime canceladaAt) { this.canceladaAt = canceladaAt; }
 }

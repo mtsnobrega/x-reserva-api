@@ -13,7 +13,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.riobranco.x.reserva_api.model.Reserva;
 import com.riobranco.x.reserva_api.repository.ReservaRepository;
@@ -255,6 +257,27 @@ public class ReservaService {
         reserva.setCheckoutAt(LocalDateTime.now());
         reserva.setStatus("FINALIZADA");
 
+        return repository.save(reserva);
+    }
+    
+    // ----------------------------------------
+    // CANCELAMENTO
+    // ----------------------------------------
+
+    public Reserva cancelar(Long id, String motivo) {
+
+        Reserva reserva = repository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Reserva não encontrada"));
+
+        if (!"PENDENTE".equals(reserva.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "Só é possível cancelar reservas pendentes. Status atual: " + reserva.getStatus());
+        }
+
+        reserva.setStatus("CANCELADA");
+        reserva.setCanceladaAt(LocalDateTime.now());
+        reserva.setMotivoCancelamento(motivo);
         return repository.save(reserva);
     }
 
