@@ -32,6 +32,10 @@ import com.riobranco.x.reserva_api.service.ReservaService;
 public class ReservaController {
 
     private final ReservaService service;
+
+    // Record para mapear o JSON de cancelamento: {"motivo": "..."}
+    public record CancelamentoRequest(String motivo) {}
+
     // Recebe o service por injeção de dependência
     public ReservaController(ReservaService service) {
         this.service = service;
@@ -100,6 +104,21 @@ public class ReservaController {
         }
     }
 
+    // CANCELAMENTO ROUTE
+    @PatchMapping("/{id}/cancelar")
+    public ResponseEntity<?> cancelar(
+        @PathVariable Long id, 
+        @RequestBody CancelamentoRequest request
+    ) { 
+        try {
+            Reserva reservaAtualizada = service.cancelar(id, request.motivo()); 
+            return ResponseEntity.ok(reservaAtualizada);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 
     // DELETE ROUTE
     @DeleteMapping("/deletar-reservas/{id}")

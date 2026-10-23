@@ -421,10 +421,27 @@ http://localhost:8080/reservas/listar-reservas/1
 ```
 
 ### GET - Listar todas as reservas
-É um endpoint especifico do administrador, lista todas as reservas ja cadsatradas no sistema, como forma de histórico. 
+É um endpoint especifico do administrador, lista todas as reservas ja cadastradas no sistema, como forma de histórico. 
 ```http
 http://localhost:8080/reservas/listar-reservas
 ```
+
+### PATCH - Cancelar reserva
+O endpoint cancela uma reserva com status `PENDENTE`. A reserva não é apagada: o status muda para `CANCELADA`.
+
+```
+PATCH http://localhost:8080/reservas/1/cancelar
+```
+
+Body:
+
+```
+{
+    "motivo": "Mudança de planos"
+}
+
+> **Cancelar x Deletar:** o cancelamento muda o status para `CANCELADA` e preserva o histórico. O `DELETE` remove o registro do banco e só é permitido para reservas `FINALIZADA` ou `CANCELADA`.
+
 
 ### DELETE
 Nesse caso: 
