@@ -25,7 +25,7 @@ public class VagaClient {
         } catch (HttpClientErrorException.NotFound e) {
             throw new IllegalArgumentException("Vaga não encontrada com o ID: " + id);
         } catch (ResourceAccessException e) {
-            throw indisponivel();
+            throw indisponivel(e);
         }
     }
 
@@ -49,12 +49,16 @@ public class VagaClient {
         } catch (HttpClientErrorException.NotFound e) {
             throw new IllegalStateException("A vaga desta reserva não existe mais.");
         } catch (ResourceAccessException e) {
-            throw indisponivel();
+            throw indisponivel(e);
         }
     }
 
-    private ResponseStatusException indisponivel() {
+    private static final org.slf4j.Logger log =
+        org.slf4j.LoggerFactory.getLogger(VagaClient.class);
+
+    private ResponseStatusException indisponivel(ResourceAccessException e) {
+        log.error("Falha ao acessar a Vaga API: {}", e.getMessage());
         return new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
-                "Serviço de vagas indisponível. Tente novamente mais tarde.");
+            "Serviço de vagas indisponível. Tente novamente mais tarde.");
     }
 }
