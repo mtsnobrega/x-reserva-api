@@ -17,6 +17,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.riobranco.x.reserva_api.client.VagaClient;
+import com.riobranco.x.reserva_api.client.VagaResponse;
 import com.riobranco.x.reserva_api.model.Reserva;
 import com.riobranco.x.reserva_api.repository.ReservaRepository;
 
@@ -24,9 +26,11 @@ import com.riobranco.x.reserva_api.repository.ReservaRepository;
 public class ReservaService {
 
     private final ReservaRepository repository;
+    private final VagaClient vagaClient;
 
-    public ReservaService(ReservaRepository repository) {
+    public ReservaService(ReservaRepository repository, VagaClient vagaClient) {
         this.repository = repository;
+        this.vagaClient = vagaClient;
     }
 
     // ----------------------------------------
@@ -49,10 +53,6 @@ public class ReservaService {
                     "O ID da vaga é obrigatória.");
         }
 
-        if (reserva.getNomeVaga() == null) {
-            throw new IllegalArgumentException(
-                    "O Nome da vaga é obrigatória.");
-        }
 
         if (reserva.getDataInicio() == null || reserva.getDataFim() == null) {
             throw new IllegalArgumentException(
@@ -70,16 +70,6 @@ public class ReservaService {
         if (!reserva.getDataInicio().isBefore(reserva.getDataFim())) {
             throw new IllegalArgumentException(
                     "A data inicial deve ser menor que a data final.");
-        }
-
-        if (reserva.getPrecoVaga() == null) {
-            throw new IllegalArgumentException(
-                    "O preço da vaga é obrigatório.");
-        }
-
-        if (reserva.getPrecoVaga().compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException(
-                    "O preço da vaga não pode ser negativo.");
         }
 
         boolean conflito = repository.existeConflitoDeHorario(
@@ -129,11 +119,9 @@ public class ReservaService {
     public Reserva salvar(Reserva reserva) {
 
         validarReserva(reserva);
+        aplicarDadosDaVaga(reserva);   // nomeVaga e precoVaga vêm da Vaga API
 
-        // O valor total é sempre calculado pelo backend.
-        reserva.setPrecoReserva(
-                calcularPrecoReserva(reserva)
-        );
+        reserva.setPrecoReserva(calcularPrecoReserva(reserva));
 
         if (reserva.getCreatedAt() == null) {
             reserva.setCreatedAt(LocalDateTime.now());
@@ -179,6 +167,8 @@ public class ReservaService {
                     "Não é possível alterar uma reserva cancelada.");
         }
 
+        Long vagaAnterior = reserva.getVagaId();
+
         // Atualiza somente os dados que podem ser alterados.
         reserva.setVagaId(dados.getVagaId());
         reserva.setDataInicio(dados.getDataInicio());
@@ -187,13 +177,15 @@ public class ReservaService {
         // Valida a nova configuração da reserva.
         validarReserva(reserva);
 
-        // Mantém o preço da vaga controlado pelo sistema.
-        // O preço da reserva é recalculado com base nos novos dados.
-        reserva.setPrecoReserva(
-            calcularPrecoReserva(reserva)
-        );
-
-        return repository.save(reserva);
+        if (!reserva.getVagaId().equals(vagaAnterior)) {
+            if ("EM_USO".equals(reserva.getStatus())) {
+                throw new IllegalStateException(
+                    "Não é possível trocar a vaga de uma reserva em uso.");
+                }
+                aplicarDadosDaVaga(reserva);
+            }
+            reserva.setPrecoReserva(calcularPrecoReserva(reserva));
+            return repository.save(reserva);
     }
 
     // ----------------------------------------
@@ -221,6 +213,7 @@ public class ReservaService {
             throw new IllegalStateException(
                     "O check-in dessa reserva já foi realizado.");
         }
+         vagaClient.ocupar(reserva.getVagaId());
 
         reserva.setCheckinAt(LocalDateTime.now());
         reserva.setStatus("EM_USO");
@@ -253,6 +246,7 @@ public class ReservaService {
             throw new IllegalStateException(
                     "O checkout dessa reserva já foi realizado.");
         }
+        vagaClient.liberar(reserva.getVagaId());
 
         reserva.setCheckoutAt(LocalDateTime.now());
         reserva.setStatus("FINALIZADA");
@@ -303,6 +297,20 @@ public class ReservaService {
         }
 
         repository.deleteById(id);
+    }
+
+
+    private void aplicarDadosDaVaga(Reserva reserva) {
+    VagaResponse vaga = vagaClient.buscarVaga(reserva.getVagaId());
+
+    if (!"DISPONIVEL".equals(vaga.status())) {
+        throw new IllegalStateException(
+                "A vaga " + vaga.nomeVaga() + " não está disponível para reserva (status: "
+                        + vaga.status() + ").");
+    }
+
+    reserva.setNomeVaga(vaga.nomeVaga());
+    reserva.setPrecoVaga(vaga.precoHora());
     }
 
     // ----------------------------------------
