@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.riobranco.x.reserva_api.model.Reserva;
 import com.riobranco.x.reserva_api.service.ReservaService;
@@ -75,6 +76,8 @@ public class ReservaController {
             return ResponseEntity.ok(reservaSalva);
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -87,7 +90,9 @@ public class ReservaController {
             return ResponseEntity.ok(reserva);
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (RuntimeException e) {
+        }  catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
+        }catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
@@ -99,6 +104,8 @@ public class ReservaController {
             return ResponseEntity.ok(reserva);
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -115,17 +122,21 @@ public class ReservaController {
             return ResponseEntity.ok(reservaAtualizada);
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (RuntimeException e) {
+        }  catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
+        }catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
     // DELETE ROUTE
     @DeleteMapping("/deletar-reservas/{id}")
-    public ResponseEntity<Void> remover(@PathVariable Long id) {
+    public ResponseEntity<?> remover(@PathVariable Long id) {
         try {
             service.deletar(id);
             return ResponseEntity.noContent().build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
