@@ -299,20 +299,32 @@ public class ReservaService {
         repository.deleteById(id);
     }
 
-
     private void aplicarDadosDaVaga(Reserva reserva) {
-    VagaResponse vaga = vagaClient.buscarVaga(reserva.getVagaId());
+        VagaResponse vaga = vagaClient.buscarVaga(reserva.getVagaId());
 
-    if (!"DISPONIVEL".equals(vaga.status())) {
+        if ("INDISPONIVEL".equals(vaga.status())) {
         throw new IllegalStateException(
-                "A vaga " + vaga.nomeVaga() + " não está disponível para reserva (status: "
-                        + vaga.status() + ").");
+                "A vaga " + vaga.nomeVaga() + " está indisponível (desativada pelo administrador).");
+        }
+
+        reserva.setNomeVaga(vaga.nomeVaga());
+        reserva.setPrecoVaga(vaga.precoHora());
     }
 
-    reserva.setNomeVaga(vaga.nomeVaga());
-    reserva.setPrecoVaga(vaga.precoHora());
-    }
+/*
+    private void aplicarDadosDaVaga(Reserva reserva) {
+        VagaResponse vaga = vagaClient.buscarVaga(reserva.getVagaId());
 
+        if (!"DISPONIVEL".equals(vaga.status())) {
+            throw new IllegalStateException(
+                    "A vaga " + vaga.nomeVaga() + " não está disponível para reserva (status: "
+                            + vaga.status() + ").");
+        }
+
+        reserva.setNomeVaga(vaga.nomeVaga());
+        reserva.setPrecoVaga(vaga.precoHora());
+    }
+ */
     // ----------------------------------------
     // MÉTODOS ESPECÍFICOS DE BUSCA
     // ----------------------------------------
